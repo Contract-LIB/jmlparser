@@ -98,7 +98,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * Print a list of modifiers on a declaration.
    *
-   * By default, this simply outputs the string representations of the modifiers separated by spaces.
+   * By default, this simply outputs the string representations of the modifiers
+   * separated by spaces.
    */
   protected void printModifiers(final NodeList<Modifier> modifiers) {
     if (modifiers.size() > 0) {
@@ -119,7 +120,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * Print a list of body declarations.
    *
-   * By default, this outputs declarations surrounded with a newline before and after.
+   * By default, this outputs declarations surrounded with a newline before and
+   * after.
    */
   protected void printMembers(final NodeList<BodyDeclaration<?>> members, final Void arg) {
     for (final BodyDeclaration<?> member : members) {
@@ -130,8 +132,10 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   }
 
   /**
-   * Print a list of compact class members. This is similar to {@see printMembers} with the exception that the
-   * empty lines preceding the first member and following the last member are not printed.
+   * Print a list of compact class members. This is similar to {@see printMembers}
+   * with the exception that the
+   * empty lines preceding the first member and following the last member are not
+   * printed.
    */
   protected void printCompactClassMembers(final NodeList<BodyDeclaration<?>> members, final Void arg) {
     BodyDeclaration<?> member;
@@ -151,7 +155,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   }
 
   /**
-   * Print a list of annotations on a member, i.e., a top-level or body declaration.
+   * Print a list of annotations on a member, i.e., a top-level or body
+   * declaration.
    *
    * By default, this outputs each annotation on a separate line.
    */
@@ -169,7 +174,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
    * Prints a list of annotations.
    *
    * By default, outputs the {@code annotations} followed by spaces.
-   * If {@code prefixWithASpace} is set, outputs an additional space at the beginning if there are annotations
+   * If {@code prefixWithASpace} is set, outputs an additional space at the
+   * beginning if there are annotations
    * to output.
    */
   protected void printAnnotations(
@@ -209,7 +215,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * Print type parameters.
    *
-   * This outputs type parameters using the {@code <T1 [extends ...] [super...], ..., Tn>} syntax.
+   * This outputs type parameters using the
+   * {@code <T1 [extends ...] [super...], ..., Tn>} syntax.
    */
   protected void printTypeParameters(final NodeList<TypeParameter> args, final Void arg) {
     if (!isNullOrEmpty(args)) {
@@ -261,14 +268,15 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * General list output functionality - no output for empty lists.
    *
-   * This outputs nothing if {@code args} is empty, and {@code prefix args[0] separator ... separator arg[n] suffix}
+   * This outputs nothing if {@code args} is empty, and
+   * {@code prefix args[0] separator ... separator arg[n] suffix}
    * otherwise.
    *
-   * @param args the nodes to output
-   * @param arg ignored
-   * @param prefix prefix for the list output
+   * @param args      the nodes to output
+   * @param arg       ignored
+   * @param prefix    prefix for the list output
    * @param separator seperator between the list items
-   * @param postfix suffix for the list output
+   * @param postfix   suffix for the list output
    */
   protected void printPrePostFixOptionalList(
       final NodeList<? extends Visitable> args, final Void arg, String prefix, String separator, String postfix) {
@@ -288,14 +296,15 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * General list output functionality with output for empty lists.
    *
-   * This outputs @{code prefix suffix} if {@code args} is empty, and {@code prefix args[0] separator ... separator arg[n] suffix}
+   * This outputs @{code prefix suffix} if {@code args} is empty, and
+   * {@code prefix args[0] separator ... separator arg[n] suffix}
    * otherwise.
    *
-   * @param args the nodes to output
-   * @param arg ignored
-   * @param prefix prefix for the list output
+   * @param args      the nodes to output
+   * @param arg       ignored
+   * @param prefix    prefix for the list output
    * @param separator seperator between the list items
-   * @param postfix suffix for the list output
+   * @param postfix   suffix for the list output
    */
   protected void printPrePostFixRequiredList(
       final NodeList<? extends Visitable> args, final Void arg, String prefix, String separator, String postfix) {
@@ -736,8 +745,9 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   /**
    * Should the given array initializer expression be output on multiple lines,
    * as an array of annotations?
+   * 
    * @return true iff the {@code INDENT_PRINT_ARRAYS_OF_ANNOTATIONS} is set
-   * and the array consists of {@code AnnotationExpr} entries.
+   *         and the array consists of {@code AnnotationExpr} entries.
    */
   private boolean doPrintAsArrayOfAnnotations(final ArrayInitializerExpr n) {
     return getOption(ConfigOption.INDENT_PRINT_ARRAYS_OF_ANNOTATIONS).isPresent()
@@ -1193,13 +1203,16 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
   @Override
   public void visit(JmlMethodDeclaration n, Void arg) {
     printOrphanCommentsBeforeThisChildNode(n);
+    startJmlComment(false, NodeList.nodeList());
     n.getContract().ifPresent(c -> {
       c.accept(this, arg);
       printer.println();
-      printer.indent();
     });
+    printer.indent();
     n.getMethodDeclaration().accept(this, arg);
     printer.println();
+    endJmlComment();
+    printer.unindent();
   }
 
   @Override
@@ -1772,19 +1785,28 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
       scope.accept(this, arg);
       if (columnAlignFirstMethodChain.get()) {
         if (methodCallWithScopeInScope.get()) {
-          /* We're a method call on the result of something (method call, property access, ...) that is not stand alone,
-          and not the first one with scope, like:
-          we're x() in a.b().x(), or in a=b().c[15].d.e().x().
-          That means that the "else" has been executed by one of the methods in the scope chain, so that the alignment
-          is set to the "." of that method.
-          That means we will align to that "." when we start a new line: */
+          /*
+           * We're a method call on the result of something (method call, property access,
+           * ...) that is not stand alone,
+           * and not the first one with scope, like:
+           * we're x() in a.b().x(), or in a=b().c[15].d.e().x().
+           * That means that the "else" has been executed by one of the methods in the
+           * scope chain, so that the alignment
+           * is set to the "." of that method.
+           * That means we will align to that "." when we start a new line:
+           */
           printer.println();
         } else if (!lastMethodInCallChain.get()) {
-          /* We're the first method call on the result of something in the chain (method call, property access, ...),
-          but we are not at the same time the last method call in that chain, like:
-          we're x() in a().x().y(), or in Long.x().y.z(). That means we get to dictate the indent of following method
-          calls in this chain by setting the cursor to where we are now: just before the "."
-          that start this method call. */
+          /*
+           * We're the first method call on the result of something in the chain (method
+           * call, property access, ...),
+           * but we are not at the same time the last method call in that chain, like:
+           * we're x() in a().x().y(), or in Long.x().y.z(). That means we get to dictate
+           * the indent of following method
+           * calls in this chain by setting the cursor to where we are now: just before
+           * the "."
+           * that start this method call.
+           */
           printer.reindentWithAlignToCursor();
         }
       }
@@ -2214,7 +2236,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
     printer.println(" {");
     printer.indent();
     if (n.getEntries().isNonEmpty()) {
-      // Either we hit the constant amount limit in the configurations, or any of the constants has a comment
+      // Either we hit the constant amount limit in the configurations, or any of the
+      // constants has a comment
       final boolean alignVertically = n.getEntries()
           .size() > getOption(ConfigOption.MAX_ENUM_CONSTANTS_TO_ALIGN_HORIZONTALLY)
               .get()
@@ -2555,12 +2578,14 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
     final String commentContent = normalizeEolInTextBlock(
         n.getContent(),
         getOption(ConfigOption.END_OF_LINE_CHARACTER).get().asString());
-    // as BlockComment should not be formatted, -1 to preserve any trailing empty line if present
+    // as BlockComment should not be formatted, -1 to preserve any trailing empty
+    // line if present
     String[] lines = commentContent.split("\\R", -1);
     printer.print(n.getHeader());
     for (int i = 0; i < (lines.length - 1); i++) {
       printer.print(lines[i]);
-      // Avoids introducing indentation in blockcomments. ie: do not use println() as it would trigger indentation
+      // Avoids introducing indentation in blockcomments. ie: do not use println() as
+      // it would trigger indentation
       // at the next print call.
       printer.print(getOption(ConfigOption.END_OF_LINE_CHARACTER).get().asValue());
     }
@@ -2581,7 +2606,8 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
     for (int i = 0; i < (lines.length - 1); i++) {
       printer.print(n.getHeader());
       printer.print(lines[i]);
-      // Avoids introducing indentation in markdown comments. ie: do not use println() as it would trigger
+      // Avoids introducing indentation in markdown comments. ie: do not use println()
+      // as it would trigger
       // indentation
       // at the next print call.
       printer.print(getOption(ConfigOption.END_OF_LINE_CHARACTER).get().asValue());
@@ -2740,8 +2766,10 @@ public class DefaultPrettyPrinterVisitor implements VoidVisitor<Void> {
    *
    * Orders imports using the selected ordering strategy, given
    * by {@code ORDER_IMPORTS} (which forces alphabetic ordering if set),
-   * falling back to {@code SORT_IMPORTS_STRATEGY} (which yields a user-selected ordering),
-   * and finally to {@link DefaultImportOrderingStrategy}, and out them in groups, seperated by
+   * falling back to {@code SORT_IMPORTS_STRATEGY} (which yields a user-selected
+   * ordering),
+   * and finally to {@link DefaultImportOrderingStrategy}, and out them in groups,
+   * seperated by
    * newlines.
    */
   protected void printImports(NodeList<ImportDeclaration> imports, Void arg) {
